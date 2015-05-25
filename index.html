@@ -3,25 +3,143 @@
   <head>
     <script src="jquery.js"></script>
     <script src="data_generator.js"></script>
+    
   </head>
+
+  <style>
+    body { 
+      background-color: #22FFFF; 
+      width: 1200px;
+      margin: auto;
+    }
+    button {
+      color: #004444;
+      background-color: #99FFFF;
+      height: 60px;
+      width: 260px;
+      font-size: 25px;
+      text-align: left;
+      margin-right: 10px;
+      border-radius: 10px;
+    }
+    h1 { font-size: 32px; color: #004444}
+    h2 { color: #004444; margin-right: 10px; }
+    b {
+      font-size: 30px;
+      color: #004444;  
+    }
+    input { height: 20px; width: 500px;}
+  </style>
+
   <body>
+
     <script>
+      var visitor = 'UserTwit';
 
       $(document).ready(function(){
-        var $body = $('body');
-        $body.html('');
 
-        var index = streams.home.length - 1;
-        while(index >= 0){
-          var tweet = streams.home[index];
+        var $body = $('body');
+        var updateTweetsTimer = setInterval(function(){ updateTweets(); }, 2000);
+        var numberOfTweets = streams.home.length;
+
+        
+        function addTweetToBody(tweetToAdd){
           var $tweet = $('<div></div>');
-          $tweet.text('@' + tweet.user + ': ' + tweet.message);
+          var $timestamp = $('<div></div>');
+          var tweetUserButton = document.createElement("BUTTON");
+          tweetUserButton.textContent = '@' + tweetToAdd.user;
+          tweetUserButton.addEventListener("click", function() { showOneTwitTweets(tweetToAdd.user); } );
+          var $tweetBody = $('<b></b>');
+
+          $tweetBody.text(tweetToAdd.message);
+          $tweet.append(tweetUserButton);
+          $tweetBody.appendTo($tweet);
+          $timestamp.text('Sent at: '+tweetToAdd.created_at);
           $tweet.appendTo($body);
-          index -= 1;
+           
+          $timestamp.appendTo($body);
         }
+
+        function updateTweets(Twit){
+          if (streams.home.length > numberOfTweets){
+            var tweetsAdded = streams.home.length - numberOfTweets;
+            for (i = numberOfTweets; i < streams.home.length; i++){
+              var tweet = streams.home[i];
+              if(Twit === undefined){
+                addTweetToBody(tweet);
+              }
+              else if (tweet.user === Twit){
+                addTweetToBody(tweet);
+              }
+            }
+            numberOfTweets = streams.home.length;
+          }
+        }
+
+        function publishUserTweet(evt){
+          if(evt.keyCode == 13){
+            var targ;
+	    if (!e) var e = window.event;
+	    if (e.target) targ = e.target;
+	    else if (e.srcElement) targ = e.srcElement;
+	    if (targ.nodeType == 3) // defeat Safari bug
+              targ = targ.parentNode;
+            var message = targ.value;
+            targ.value = '';
+            writeTweet(message);
+          }
+        }
+        
+        function showAllTweets(){
+          $body.html('');
+          $body.append("<h1>All your twits!</h1>");
+          var $userInputSection = $('<h2></h2>');
+          $userInputSection.text("Hey, Twit!  What's the Tweet?  ");
+          var userTweetInput = document.createElement("INPUT");
+          userTweetInput.setAttribute("type","text");
+          userTweetInput.onkeypress = publishUserTweet;
+          $userInputSection.append(userTweetInput);
+          $body.append($userInputSection);
+          
+          var index = streams.home.length - 1;
+          while(index >= 0){
+            var tweet = streams.home[index];
+            addTweetToBody(tweet);
+            index -= 1;
+          }
+          clearInterval(updateTweetsTimer);
+          updateTweetsTimer = setInterval(function(){ updateTweets(); }, 2000);
+        }
+
+        function showOneTwitTweets(Twit){
+          $body.html('');
+          var $oneTwitText = $('<h1></h1>');
+          $oneTwitText.text("This Twit's Tweets: "+Twit);
+          var allTwitButton = document.createElement("BUTTON");
+          allTwitButton.textContent = "See All Twits' Tweets";
+          allTwitButton.addEventListener("click", function() { showAllTweets(); } );
+          $oneTwitText.append(allTwitButton);
+          $oneTwitText.appendTo($oneTwitText);
+
+          $oneTwitText.appendTo($body); 
+
+          var index = streams.home.length - 1;
+          while(index >= 0){
+            var tweet = streams.home[index];
+            if(tweet.user === Twit){
+              addTweetToBody(tweet);
+            }
+            index -= 1;
+          }
+          clearInterval(updateTweetsTimer);
+          updateTweetsTimer = setInterval(function(){ updateTweets(Twit); }, 2000);  
+        }                 
+
+        showAllTweets();
 
       });
 
+      
     </script>
   </body>
 </html>
